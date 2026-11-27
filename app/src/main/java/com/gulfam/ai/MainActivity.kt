@@ -1,3 +1,4 @@
+
 package com.gulfam.ai
 
 import android.app.Activity
@@ -49,7 +50,8 @@ class MainActivity : Activity() {
         tts = TextToSpeech(this) { result ->
             if (result == TextToSpeech.SUCCESS) {
                 val language = tts?.setLanguage(Locale.getDefault())
-                ttsReady = language != TextToSpeech.LANG_MISSING_DATA &&
+                ttsReady =
+                    language != TextToSpeech.LANG_MISSING_DATA &&
                     language != TextToSpeech.LANG_NOT_SUPPORTED
             }
         }
@@ -120,6 +122,7 @@ class MainActivity : Activity() {
             setTextColor(Color.WHITE)
             textSize = 15f
             setPadding(16, 12, 16, 12)
+
             background = GradientDrawable().apply {
                 setColor(Color.rgb(17, 30, 49))
                 cornerRadius = 18f
@@ -180,8 +183,13 @@ class MainActivity : Activity() {
     }
 
     private fun sendMessage(message: String) {
+
         if (message.isBlank()) {
-            Toast.makeText(this, "Type a message first", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                this,
+                "Type a message first",
+                Toast.LENGTH_SHORT
+            ).show()
             return
         }
 
@@ -190,6 +198,7 @@ class MainActivity : Activity() {
         replyView.text = "Please wait..."
 
         executor.execute {
+
             var connection: HttpURLConnection? = null
 
             try {
@@ -200,14 +209,19 @@ class MainActivity : Activity() {
                 connection.connectTimeout = 20000
                 connection.readTimeout = 60000
                 connection.doOutput = true
+
                 connection.setRequestProperty(
-                    "Content-Type", "application/json"
+                    "Content-Type",
+                    "application/json"
                 )
 
-                val body = JSONObject().put("message", message)
+                val body = JSONObject()
+                    .put("message", message)
 
                 connection.outputStream.use {
-                    it.write(body.toString().toByteArray(Charsets.UTF_8))
+                    it.write(
+                        body.toString().toByteArray(Charsets.UTF_8)
+                    )
                 }
 
                 val code = connection.responseCode
@@ -226,7 +240,10 @@ class MainActivity : Activity() {
 
                 if (code !in 200..299) {
                     throw Exception(
-                        result.optString("error", "HTTP error $code")
+                        result.optString(
+                            "error",
+                            "HTTP error $code"
+                        )
                     )
                 }
 
@@ -238,6 +255,7 @@ class MainActivity : Activity() {
 
                 runOnUiThread {
                     replyView.text = "GULFAM:\n\n$reply"
+
                     status.text = "● GULFAM ONLINE"
                     status.setTextColor(Color.GREEN)
 
@@ -245,11 +263,15 @@ class MainActivity : Activity() {
                 }
 
             } catch (e: Exception) {
+
                 runOnUiThread {
                     status.text = "● CONNECTION ERROR"
                     status.setTextColor(Color.RED)
-                    replyView.text = "Error: ${e.message}"
+
+                    replyView.text =
+                        "Error: ${e.message}"
                 }
+
             } finally {
                 connection?.disconnect()
             }
@@ -257,11 +279,13 @@ class MainActivity : Activity() {
     }
 
     private fun startVoiceRecognition() {
+
         if (checkSelfPermission(Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED) {
 
             requestPermissions(
-                arrayOf(Manifest.permission.RECORD_AUDIO), 101
+                arrayOf(Manifest.permission.RECORD_AUDIO),
+                101
             )
             return
         }
@@ -273,7 +297,9 @@ class MainActivity : Activity() {
 
         try {
             recognizer?.destroy()
-            recognizer = SpeechRecognizer.createSpeechRecognizer(this)
+
+            recognizer =
+                SpeechRecognizer.createSpeechRecognizer(this)
 
             recognizer?.setRecognitionListener(
                 object : RecognitionListener {
@@ -299,6 +325,7 @@ class MainActivity : Activity() {
                     }
 
                     override fun onResults(results: Bundle?) {
+
                         val words = results?.getStringArrayList(
                             SpeechRecognizer.RESULTS_RECOGNITION
                         )
@@ -317,21 +344,27 @@ class MainActivity : Activity() {
                         partialResults: Bundle?
                     ) {}
 
-                    override fun onEvent(eventType: Int, params: Bundle?) {}
+                    override fun onEvent(
+                        eventType: Int,
+                        params: Bundle?
+                    ) {}
                 }
             )
 
             val intent = Intent(
                 RecognizerIntent.ACTION_RECOGNIZE_SPEECH
             ).apply {
+
                 putExtra(
                     RecognizerIntent.EXTRA_LANGUAGE_MODEL,
                     RecognizerIntent.LANGUAGE_MODEL_FREE_FORM
                 )
+
                 putExtra(
                     RecognizerIntent.EXTRA_LANGUAGE,
                     Locale.getDefault().toLanguageTag()
                 )
+
                 putExtra(
                     RecognizerIntent.EXTRA_PARTIAL_RESULTS,
                     false
@@ -342,6 +375,27 @@ class MainActivity : Activity() {
 
         } catch (e: Exception) {
             status.text = "● VOICE START FAILED"
+        }
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(
+            requestCode,
+            permissions,
+            grantResults
+        )
+
+        if (requestCode == 101 &&
+            grantResults.isNotEmpty() &&
+            grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            startVoiceRecognition()
+        } else if (requestCode == 101) {
+            status.text = "● MICROPHONE PERMISSION DENIED"
         }
     }
 
@@ -356,8 +410,14 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun addSpace(layout: LinearLayout, height: Int) {
-        layout.addView(View(this), LinearLayout.LayoutParams(1, height))
+    private fun addSpace(
+        layout: LinearLayout,
+        height: Int
+    ) {
+        layout.addView(
+            View(this),
+            LinearLayout.LayoutParams(1, height)
+        )
     }
 
     private fun matchWidth(): LinearLayout.LayoutParams {
