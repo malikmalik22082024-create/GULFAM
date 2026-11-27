@@ -1,4 +1,3 @@
-
 package com.gulfam.ai
 
 import android.app.Activity
